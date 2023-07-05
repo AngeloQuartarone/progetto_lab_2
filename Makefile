@@ -10,7 +10,7 @@ all: bibserver bibclient
 
 prepfile:
 	chmod +x ./fileCleaner.sh &
-	./fileCleaner.sh 1> /dev/null
+	./fileCleaner.sh
 
 test: bibserver bibclient
 	./bibserver bb1 ./bibData/bib1.txt 4 &

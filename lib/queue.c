@@ -4,8 +4,7 @@
 #include <string.h>
 #include <errno.h>
 
-static int en;
-static void *ptr;
+static int en = 0;
 
 /**
  * Initialize the queue
@@ -34,7 +33,7 @@ void destroy(Queue *q)
 	handle_en_error(en, "pthread_cond_destroy in destroy");
 	while (q->head)
 	{
-		Node *temp = q->head;
+		Node *temp __attribute__((unused))= q->head;
 		q->head = q->head->next;
 	}
 	q->tail = NULL;
@@ -51,8 +50,8 @@ void push(void *data, Queue *q)
 	Node *n = (Node *)malloc(sizeof(Node));
 	if (n == NULL)
 	{
-		message("malloc: %s\n", strerror(errno));
-		exit(1);
+		dprintf(2, "malloc: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
 	}
 	n->data = data;
 	n->next = NULL;

@@ -1,4 +1,4 @@
-#define _XOPEN_SOURCE
+#define _GNU_SOURCE
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <semaphore.h>
@@ -35,8 +35,8 @@
 static int running = 1;
 static int en = 0;
 static void *ptr;
-static pthread_mutex_t *mtx_log;
-static pthread_mutex_t *mtx_for_loan;
+static pthread_mutex_t mtx_log;
+static pthread_mutex_t mtx_for_loan;
 FILE *log_file;
 
 typedef struct
@@ -57,7 +57,7 @@ int main(int argc, char const *argv[])
 {
     if (argc <= 2)
     {
-        dprintf(2, "\e[1m\nUsage: ./bibserver NAME_BIB FILE_RECORD [W]\n\n   NAME_BIB: name of the server\nFILE_RECORD: path of the file record to read\n          W: number of worker threads\n\n");
+        dprintf(2, "\033[1m\nUsage: ./bibserver NAME_BIB FILE_RECORD [W]\n\n   NAME_BIB: name of the server\nFILE_RECORD: path of the file record to read\n          W: number of worker threads\n\n");
         exit(EXIT_SUCCESS);
     }
 
@@ -83,7 +83,7 @@ int main(int argc, char const *argv[])
     handle_en_error(en, "pthread_detach");
 
     int n_thr_Server = atoi(argv[3]);
-    const char *filename = argv[2];
+    char *filename = (char *)argv[2];
     char *lineptr = NULL;
     lineptr = calloc(1, BUF_SIZE);
     handle_null_error(lineptr, "calloc");
@@ -105,7 +105,7 @@ int main(int argc, char const *argv[])
     opened_file = fopen(filename, "r");
     if (opened_file == NULL)
     {
-        message(mtx_log, "Error opening file %s\n", filename);
+        message(&mtx_log, "Error opening file %s\n", filename);
         exit(EXIT_FAILURE);
     }
     else
@@ -179,7 +179,7 @@ int main(int argc, char const *argv[])
 
     if (listen(serverSocket, SOMAXCONN) < 0)
     {
-        message(mtx_log, "listen failed");
+        message(&mtx_log, "listen failed");
         exit(EXIT_FAILURE);
     }
     FD_ZERO(&allFDs);
@@ -222,7 +222,7 @@ int main(int argc, char const *argv[])
 
         if ((check_select = select(currMax + 1, &readFDs, NULL, NULL, &timeout)) == -1)
         {
-            message(mtx_log, "select failed");
+            message(&mtx_log, "select failed");
             exit(EXIT_FAILURE);
         }
 
@@ -236,7 +236,7 @@ int main(int argc, char const *argv[])
 
                     if ((clientFD = accept(serverSocket, NULL, NULL)) < 0)
                     {
-                        message(mtx_log, "accept failed");
+                        message(&mtx_log, "accept failed");
                         exit(EXIT_FAILURE);
                     }
                     en = pthread_mutex_lock(&m);
@@ -273,7 +273,7 @@ int main(int argc, char const *argv[])
         handle_en_error(en, "pthread_join");
     }
 
-    char *directory;
+    char *directory __attribute__((unused));
     strtok(filename, "/");
     directory = strtok(NULL, "/");
     char *f_name = strtok(NULL, "");
@@ -286,7 +286,7 @@ int main(int argc, char const *argv[])
     opened_file = fopen(new_path, "w+");
     if (opened_file == NULL)
     {
-        message(mtx_log, "Error opening file %s\n", filename);
+        message(&mtx_log, "Error opening file %s\n", filename);
         exit(EXIT_FAILURE);
     }
     else
@@ -374,15 +374,14 @@ void *worker(void *args)
                 size_t length = strlen(data_to_send);
                 size = sizeof(char) + sizeof(unsigned int) + strlen(data_to_send);
                 void *message_to_send = calloc(1, size);
-                memcpy(message_to_send, &type, sizeof(char));
-                memcpy(message_to_send + sizeof(char), &length, sizeof(unsigned int));
-                memcpy(message_to_send + sizeof(char) + sizeof(unsigned int), data_to_send, length);
+                memcpy((char *)message_to_send, &type, sizeof(char));
+                memcpy((char *)message_to_send + sizeof(char), &length, sizeof(unsigned int));
+                memcpy((char *)message_to_send + sizeof(char) + sizeof(unsigned int), data_to_send, length);
                 write(*fd, message_to_send, size);
                 continue;
             }
             else
             {
-                int hit = 0;
                 for (int i = 0; i < books->size; i++)
                 {
 
@@ -412,11 +411,11 @@ void *worker(void *args)
                                 size = sizeof(char) + sizeof(unsigned int) + strlen(data_to_send);
                                 void *message_to_send = calloc(1, size);
 
-                                ptr = memcpy(message_to_send, &type, sizeof(char));
+                                ptr = memcpy((char *)message_to_send, &type, sizeof(char));
                                 handle_null_error(ptr, "memcpy");
-                                ptr = memcpy(message_to_send + sizeof(char), (unsigned int *)&length, sizeof(unsigned int));
+                                ptr = memcpy((char *)message_to_send + sizeof(char), (unsigned int *)&length, sizeof(unsigned int));
                                 handle_null_error(ptr, "memcpy");
-                                ptr = memcpy(message_to_send + sizeof(char) + sizeof(unsigned int), data_to_send, length);
+                                ptr = memcpy((char *)message_to_send + sizeof(char) + sizeof(unsigned int), data_to_send, length);
                                 handle_null_error(ptr, "memcpy");
                                 write(*fd, message_to_send, size);
 
@@ -439,9 +438,9 @@ void *worker(void *args)
                                 size_t length = strlen(data_to_send);
                                 size = sizeof(char) + sizeof(unsigned int) + strlen(data_to_send);
                                 void *message_to_send = calloc(1, size);
-                                memcpy(message_to_send, &type, sizeof(char));
-                                memcpy(message_to_send + sizeof(char), &length, sizeof(unsigned int));
-                                memcpy(message_to_send + sizeof(char) + sizeof(unsigned int), data_to_send, length);
+                                memcpy((char *)message_to_send, &type, sizeof(char));
+                                memcpy((char *)message_to_send + sizeof(char), &length, sizeof(unsigned int));
+                                memcpy((char *)message_to_send + sizeof(char) + sizeof(unsigned int), data_to_send, length);
                                 write(*fd, message_to_send, size);
                             }
                             isLoan = 1;
@@ -454,11 +453,11 @@ void *worker(void *args)
                             size = sizeof(char) + sizeof(unsigned int) + strlen(data_to_send);
                             void *message_to_send = calloc(1, size);
 
-                            ptr = memcpy(message_to_send, &type, sizeof(char));
+                            ptr = memcpy((char *)message_to_send, &type, sizeof(char));
                             handle_null_error(ptr, "memcpy");
-                            ptr = memcpy(message_to_send + sizeof(char), (unsigned int *)&length, sizeof(unsigned int));
+                            ptr = memcpy((char *)message_to_send + sizeof(char), (unsigned int *)&length, sizeof(unsigned int));
                             handle_null_error(ptr, "memcpy");
-                            ptr = memcpy(message_to_send + sizeof(char) + sizeof(unsigned int), data_to_send, length);
+                            ptr = memcpy((char *)message_to_send + sizeof(char) + sizeof(unsigned int), data_to_send, length);
                             handle_null_error(ptr, "memcpy");
                             write(*fd, message_to_send, size);
 
@@ -479,9 +478,9 @@ void *worker(void *args)
                     size_t length = strlen(data_to_send);
                     size = sizeof(char) + sizeof(unsigned int) + strlen(data_to_send);
                     void *message_to_send = calloc(1, size);
-                    memcpy(message_to_send, &type, sizeof(char));
-                    memcpy(message_to_send + sizeof(char), &length, sizeof(unsigned int));
-                    memcpy(message_to_send + sizeof(char) + sizeof(unsigned int), data_to_send, length);
+                    memcpy((char *)message_to_send, &type, sizeof(char));
+                    memcpy((char *)message_to_send + sizeof(char), &length, sizeof(unsigned int));
+                    memcpy((char *)message_to_send + sizeof(char) + sizeof(unsigned int), data_to_send, length);
                     write(*fd, message_to_send, size);
                 }
             }
@@ -508,11 +507,11 @@ void *worker(void *args)
         if (n_bytes_readed == 0)
         {
 
-            en = pthread_mutex_lock(&m);
+            en = pthread_mutex_lock(m);
             handle_en_error(en, "pthread_mutex_lock");
             FD_CLR(*fd, client);
             aggiornaMax(maxFD, *client);
-            en = pthread_mutex_unlock(&m);
+            en = pthread_mutex_unlock(m);
             handle_en_error(en, "pthread_mutex_unlock");
         }
 

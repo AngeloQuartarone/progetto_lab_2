@@ -25,9 +25,9 @@
 #define MSG_END 'X'
 
 static int prestito = 0;
-static int *en = 0;
+static int en = 0;
 static void *ptr;
-static pthread_mutex_t *mtx_log;
+static pthread_mutex_t mtx_log;
 
 typedef struct
 {
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        dprintf(2, "\e[1m\nUsage: ./biblient [--field]... [-p]\n\n[--field]: Wwhat you want to search for.\n     [-p]: Loan request.\n\n");
+        dprintf(2, "\033[1m\nUsage: ./biblient [--field]... [-p]\n\n[--field]: Wwhat you want to search for.\n     [-p]: Loan request.\n\n");
         exit(EXIT_SUCCESS);
     }
 
@@ -122,13 +122,13 @@ int main(int argc, char *argv[])
 
     long sock[count];
     int index = 0;
-    while (ptr = fgets(lineptr, BUF_SIZE, configFile) != NULL)
+    while ((ptr = fgets(lineptr, BUF_SIZE, configFile)) != NULL)
     {
         handle_null_error(ptr, "fgets");
         if (strcmp(lineptr, "\n") != 0)
         {
-            char *copia = strtok(lineptr, ",");
-            char *appoggio = strtok(NULL, ":");
+            char *copia __attribute__((unused)) = strtok(lineptr, ",");
+            char *appoggio __attribute__((unused)) = strtok(NULL, ":");
             char *n_socketFD = strtok(NULL, "\n");
             sock[index] = atoi(n_socketFD);
             index++;
@@ -161,11 +161,11 @@ int main(int argc, char *argv[])
     int connection = 0;
     int index_for_addr = 0;
     void *message_to_send = calloc(1, size);
-    ptr = memcpy(message_to_send, &type, sizeof(type));
+    ptr = memcpy((char *)message_to_send, &type, sizeof(type));
     handle_null_error(ptr, "memcpy");
-    ptr = memcpy(message_to_send + sizeof(char), &length, sizeof(unsigned int));
+    ptr = memcpy((char *)message_to_send + sizeof(char), &length, sizeof(unsigned int));
     handle_null_error(ptr, "memcpy");
-    ptr = memcpy(message_to_send + sizeof(char) + sizeof(unsigned int), data, strlen(data));
+    ptr = memcpy((char *)message_to_send + sizeof(char) + sizeof(unsigned int), data, strlen(data));
     handle_null_error(ptr, "memcpy");
 
     //-----------------------------------main loop ---------------------------------------------------------
@@ -179,12 +179,11 @@ int main(int argc, char *argv[])
 
         if (connection == 0)
         {
-            char buff[BUF_SIZE] = "";
             write(array_for_serverSocket[index_for_addr], message_to_send, size);
 
             int n_bytes_readed = 0;
 
-            while (n_bytes_readed = read(array_for_serverSocket[index_for_addr], &type_received, sizeof(char)))
+            while ((n_bytes_readed = read(array_for_serverSocket[index_for_addr], &type_received, sizeof(char))))
             {
                 if (type_received == MSG_END)
                 {

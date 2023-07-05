@@ -1,11 +1,11 @@
-#define _XOPEN_SOURCE
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "./book.h"
+#include "util.h"
 
-extern int en;
-extern void *ptr;
 
 #define BUF_SIZE 1024
 #define MAX_FIELDS 128
@@ -89,9 +89,6 @@ int is_present(linked_list_t *l, single_book *b)
  */
 void tokenize(char *linea, single_book *book)
 {
-    char *fields[MAX_FIELDS];
-    int index = 1;
-    char *token;
     char *etichetta;
     char *valore;
     etichetta = strtok(linea, ":");
@@ -240,6 +237,7 @@ void remove_spaces(char str[])
 single_book *data_tokenizer(char *str_to_tok)
 {
     single_book *book_to_return = calloc(1, sizeof(single_book));
+    handle_null_error(book_to_return, "calloc in data_tokenizer");
     initialize_book(book_to_return);
     char *etichetta;
     char *valore;
@@ -312,7 +310,8 @@ single_book *data_tokenizer(char *str_to_tok)
  */
 char *rec_to_string(single_book *book)
 {
-    char *str = calloc(1, 24 * (sizeof(char) * BUF_SIZE + 1000));
+    char *str = calloc(1, (sizeof(char) * BUF_SIZE));
+    handle_null_error(str, "calloc in rec_to_string");
     strcat(str, "autore:");
     strcat(str, book->autore);
     strcat(str, ";titolo:");
@@ -390,7 +389,7 @@ int book_contains(single_book *book, Book_Fields field, char *key)
         s = book->prestito;
         break;
     }
-    int result = (strcasestr(s, key) != NULL);
+    int result = (strstr(s, key) != NULL);
     return result;
 }
 
@@ -459,7 +458,6 @@ int date_check(char *date)
     time_t currentTime = time(NULL);
     time_t timestamp;
 
-    struct tm *actualTime = localtime(&currentTime);
     struct tm *endRentTime = calloc(1, sizeof(struct tm));
     ;
     if (strptime(date, "%d-%m-%Y %OH:%M:%S", endRentTime) != NULL)

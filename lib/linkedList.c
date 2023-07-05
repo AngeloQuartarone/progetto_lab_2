@@ -5,8 +5,7 @@
 #include <errno.h>
 #include <pthread.h>
 
-static int *en;
-static void *ptr;
+static int en = 0;
 
 /**
  * Initializes the linked list.
