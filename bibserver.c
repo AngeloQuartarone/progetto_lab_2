@@ -62,9 +62,9 @@ int main(int argc, char const *argv[])
     }
 
     //--------------------------------- signal management ---------------------------------
-    en = pthread_mutex_init(&mtx_log, NULL);
+    en = pthread_mutex_init(mtx_log, NULL);
     handle_en_error(en, "pthread_mutex_init");
-    en = pthread_mutex_init(&mtx_for_loan, NULL);
+    en = pthread_mutex_init(mtx_for_loan, NULL);
     handle_en_error(en, "pthread_mutex_init");
 
     sigset_t set;
