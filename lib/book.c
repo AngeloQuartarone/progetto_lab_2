@@ -53,6 +53,34 @@ void *end_of_book(single_book *EOB)
     return 0;
 }
 
+int is_present(linked_list_t *l, single_book *b)
+{
+    int index = 0;
+    single_book *act;
+    while (1)
+    {
+        if(index == l->size){
+            break;
+        }
+        act = (single_book *)get_nth_element(l, index);
+        if (strcmp(act->autore, b->autore) == 0 && strcmp(act->titolo, b->titolo) == 0 &&
+                 strcmp(act->editore, b->editore) == 0 && strcmp(act->anno, b->anno) == 0 &&
+                 strcmp(act->volume, b->volume) == 0 && strcmp(act->scaffale, b->scaffale) == 0 &&
+                 strcmp(act->collocazione, b->collocazione) == 0 &&
+                 strcmp(act->luogo_pubblicazione, b->luogo_pubblicazione) == 0 &&
+                 strcmp(act->descrizione_fisica, b->descrizione_fisica) == 0 &&
+                 strcmp(act->nota, b->nota) == 0 && strcmp(act->prestito, b->prestito) == 0)
+        {
+            return 1;
+        }
+        else
+        {
+            index++;
+        }
+    }
+    return 0;
+}
+
 /**
  * Tokenize a single line from a file and store it in a single_book struct
  *
@@ -211,7 +239,7 @@ void remove_spaces(char str[])
  */
 single_book *data_tokenizer(char *str_to_tok)
 {
-    single_book *book_to_return = malloc(sizeof(single_book));
+    single_book *book_to_return = calloc(1, sizeof(single_book));
     initialize_book(book_to_return);
     char *etichetta;
     char *valore;
@@ -321,10 +349,11 @@ char *rec_to_string(single_book *book)
  */
 int book_contains(single_book *book, Book_Fields field, char *key)
 {
-    if (strcmp(key, "") == 0)
+    if ((strcmp(key, "") == 0) || key == NULL)
+    {
         return 1;
-
-    char *s;
+    }
+    char *s = NULL;
     switch (field)
     {
     case AUTHOR:
@@ -361,8 +390,8 @@ int book_contains(single_book *book, Book_Fields field, char *key)
         s = book->prestito;
         break;
     }
-
-    return strcasestr(s, key) != NULL;
+    int result = (strcasestr(s, key) != NULL);
+    return result;
 }
 
 /**
@@ -374,6 +403,10 @@ int book_contains(single_book *book, Book_Fields field, char *key)
  */
 int book_contains_all(single_book *book, single_book *search_book)
 {
+    if (search_book == NULL)
+    {
+        return 1;
+    }
     int result = 1;
     result &= book_contains(book, AUTHOR, search_book->autore);
     result &= book_contains(book, TITLE, search_book->titolo);
@@ -427,7 +460,7 @@ int date_check(char *date)
     time_t timestamp;
 
     struct tm *actualTime = localtime(&currentTime);
-    struct tm *endRentTime = malloc(sizeof(struct tm));
+    struct tm *endRentTime = calloc(1, sizeof(struct tm));
     ;
     if (strptime(date, "%d-%m-%Y %OH:%M:%S", endRentTime) != NULL)
     {
@@ -436,10 +469,12 @@ int date_check(char *date)
     diff = difftime(currentTime, timestamp);
     if (diff >= 0)
     {
+        safe_free(endRentTime);
         return 1;
     }
     else
     {
+        safe_free(endRentTime);
         return 0;
     }
 }

@@ -12,7 +12,6 @@ prepfile:
 	chmod +x ./fileCleaner.sh &
 	./fileCleaner.sh 1> /dev/null
 
-
 test: bibserver bibclient
 	./bibserver bb1 ./bibData/bib1.txt 4 &
 	./bibserver bb2 ./bibData/bib2.txt 2 &
@@ -88,9 +87,6 @@ book.o: ./lib/book.c ./lib/book.h
 bibclient.o: bibclient.c ./lib/linkedList.h
 util.o: ./lib/util.c ./lib/util.h
 
-cleanrun:
-	rm ./conf/bib.conf && touch ./conf/bib.conf && ./bibserver bb1 ./bibData/bib1.txt 2
-
 runsingle: bibserver
 	./bibserver bb1 ./bibData/bib1.txt 4 &
 	sleep 1
@@ -99,21 +95,12 @@ runsingle: bibserver
 	pkill bibserver --signal 2
 
 
-
 runserver: bibserver
 	./bibserver bb1 ./bibData/bib1.txt 2
-
-runserver1: bibserver
-	./bibserver bb2 ./bibData/bib2.txt 3
-
-runserver2: bibserver
-	./bibserver bb3 ./bibData/bib3.txt 4
 
 runclient: bibclient
 	./bibclient --autore="Luccio, Fabrizio"
 
-runclient1: bibclient
-	./bibclient --titolo="manuale di architettura pisana" -p
 
 clean:
 	rm -f *.o bibserver ./lib/*.o
@@ -131,4 +118,4 @@ valgrindserver: bibserver
 	valgrind $(VFLAGS) --log-file=./log/bibserver_valgrind.log ./bibserver bb1 ./bibData/bib1.txt 3
 
 valgrindclient: bibclient
-	valgrind $(VFLAGS) --log-file=./log/bibclient_valgrind.log ./bibclient --autore="ciccio" --titolo="labestia" --editore="io" --anno="1983" --nota="ciaoo" -p
+	valgrind $(VFLAGS) --log-file=./log/bibclient_valgrind.log ./bibclient --autore="ciccio" -p

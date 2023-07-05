@@ -42,6 +42,7 @@ void *end_of_book(single_book *);
 void *initialize_book(single_book *);
 void tokenize(char *, single_book *);
 void print_books_list(linked_list_t *);
+int is_present(linked_list_t *, single_book *);
 void remove_spaces(char *);
 void loan_check(linked_list_t *);
 single_book *data_tokenizer(char *);

@@ -37,7 +37,7 @@ static int *en = 0;
 static void *ptr;
 static pthread_mutex_t *mtx_log;
 static pthread_mutex_t *mtx_for_loan;
-FILE *log_file_name;
+FILE *log_file;
 
 typedef struct
 {
@@ -84,23 +84,25 @@ int main(int argc, char const *argv[])
 
     int n_thr_Server = atoi(argv[3]);
     const char *filename = argv[2];
-    char *lineptr = calloc(1, BUF_SIZE);
+    char *lineptr = NULL;
+    lineptr = calloc(1, BUF_SIZE);
     handle_null_error(lineptr, "calloc");
     linked_list_t *books = calloc(1, sizeof(linked_list_t));
     handle_null_error(books, "calloc");
     initialize_list(books);
 
-    log_file_name = calloc(1, BUF_SIZE);
+    char *log_file_name = calloc(1, BUF_SIZE);
     handle_null_error(log_file_name, "calloc");
     strcpy(log_file_name, "./log/");
     strcat(log_file_name, argv[1]);
     strcat(log_file_name, ".log");
-    log_file_name = fopen(log_file_name, "w+");
+    log_file = fopen(log_file_name, "w+");
     handle_null_error(log_file_name, "fopen");
 
     //--------------------------------- parsing bib file ---------------------------------
 
-    FILE *opened_file = fopen(filename, "r");
+    FILE *opened_file = NULL;
+    opened_file = fopen(filename, "r");
     if (opened_file == NULL)
     {
         message(&mtx_log, "Error opening file %s\n", filename);
@@ -109,14 +111,15 @@ int main(int argc, char const *argv[])
     else
     {
 
-        while (ptr = fgets(lineptr, BUF_SIZE, opened_file) != NULL)
+        while ((ptr = fgets(lineptr, BUF_SIZE, opened_file)) != NULL)
         {
             if (strcmp(lineptr, "\n") != 0)
             {
-                single_book *book = malloc(sizeof(single_book));
+                single_book *book = calloc(1, sizeof(single_book));
                 initialize_book(book);
                 tokenize(lineptr, book);
-                if (!book_contains_all(books, book))
+                int present = is_present(books, book);
+                if (!present)
                 {
                     add_node(books, book);
                 }
@@ -294,11 +297,14 @@ int main(int argc, char const *argv[])
             single_book *book = get_nth_element(books, i);
             char *data_to_send = rec_to_string(book);
             fprintf(opened_file, "%s\n", data_to_send);
+            safe_free(data_to_send);
         }
     }
-
     fclose(opened_file);
-    fclose(log_file_name);
+    fclose(log_file);
+    safe_free(log_file_name);
+    safe_free(new_path);
+    safe_free(lineptr);
     safe_free(client);
     free_list(books);
     safe_free(books);
@@ -417,11 +423,13 @@ void *worker(void *args)
 
                                 en = pthread_mutex_lock(&mtx_log);
                                 handle_en_error(en, "pthread_mutex_lock");
-                                fprintf(log_file_name, "%s\n", data_to_send);
+                                fprintf(log_file, "%s\n", data_to_send);
                                 en = pthread_mutex_unlock(&mtx_log);
                                 handle_en_error(en, "pthread_mutex_unlock");
 
                                 loanRequestNumber = loanRequestNumber + 1;
+                                safe_free(message_to_send);
+                                safe_free(data_to_send);
                             }
                             else
                             {
@@ -457,7 +465,7 @@ void *worker(void *args)
 
                             en = pthread_mutex_lock(&mtx_log);
                             handle_en_error(en, "pthread_mutex_lock");
-                            fprintf(log_file_name, "%s\n", data_to_send);
+                            fprintf(log_file, "%s\n", data_to_send);
                             en = pthread_mutex_unlock(&mtx_log);
                             handle_en_error(en, "pthread_mutex_unlock");
 
@@ -482,7 +490,7 @@ void *worker(void *args)
             {
                 en = pthread_mutex_lock(&mtx_log);
                 handle_en_error(en, "pthread_mutex_lock");
-                fprintf(log_file_name, "LOAN %d\n\n", loanRequestNumber);
+                fprintf(log_file, "LOAN %d\n\n", loanRequestNumber);
                 en = pthread_mutex_unlock(&mtx_log);
                 handle_en_error(en, "pthread_mutex_unlock");
             }
@@ -490,7 +498,7 @@ void *worker(void *args)
             {
                 en = pthread_mutex_lock(&mtx_log);
                 handle_en_error(en, "pthread_mutex_lock");
-                fprintf(log_file_name, "QUERY %d\n\n", queryNumber);
+                fprintf(log_file, "QUERY %d\n\n", queryNumber);
                 en = pthread_mutex_unlock(&mtx_log);
                 handle_en_error(en, "pthread_mutex_unlock");
             }
@@ -508,6 +516,9 @@ void *worker(void *args)
             en = pthread_mutex_unlock(&m);
             handle_en_error(en, "pthread_mutex_unlock");
         }
+
+        safe_free(data);
+        safe_free(book_to_search);
     }
 
     return NULL;

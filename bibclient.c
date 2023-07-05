@@ -25,7 +25,6 @@
 #define MSG_END 'X'
 
 static int prestito = 0;
-static int running = 1;
 static int *en = 0;
 static void *ptr;
 static pthread_mutex_t *mtx_log;
@@ -50,25 +49,8 @@ int main(int argc, char *argv[])
         exit(EXIT_SUCCESS);
     }
 
-    //------------------------------ signal management ----------------------------------------------------------
     en = pthread_mutex_init(&mtx_log, NULL);
     handle_en_error(en, "pthread_mutex_init");
-    sigset_t set;
-    en = sigemptyset(&set);
-    handle_en_error(en, "sigemptyset");
-    en = sigaddset(&set, SIGINT);
-    handle_en_error(en, "sigaddset");
-    en = sigaddset(&set, SIGTERM);
-    handle_en_error(en, "sigaddset");
-
-    pthread_t signal_handler;
-    en = pthread_sigmask(SIG_BLOCK, &set, NULL);
-    handle_en_error(en, "pthread_sigmask");
-
-    en = pthread_create(&signal_handler, NULL, fun_sig_handler, &set);
-    handle_en_error(en, "pthread_create: thread signal_handler");
-    en = pthread_detach(signal_handler);
-    handle_en_error(en, "pthread_detach: thread signal_handler");
 
     //------------------------------- arguments management -------------------------------------------------------
 
@@ -188,13 +170,13 @@ int main(int argc, char *argv[])
 
     //-----------------------------------main loop ---------------------------------------------------------
 
-    while (running)
+    while (1)
     {
         char type_received;
         unsigned int length_received = 0;
-        char *data_received;
+        char *data_received = NULL;
         connection = connect(array_for_serverSocket[index_for_addr], (struct sockaddr *)&array_for_serverAddress[index_for_addr], sizeof(array_for_serverAddress[index_for_addr]));
-        
+
         if (connection == 0)
         {
             char buff[BUF_SIZE] = "";
@@ -210,19 +192,19 @@ int main(int argc, char *argv[])
                 }
                 if (type_received == MSG_ERROR)
                 {
-                    printf("type received: %c\n", type_received);
-                    printf("length received: %d\n", length_received);
-                    printf("data received: %s\n", data_received);
+                    dprintf(2, "type received: %c\n", type_received);
+                    dprintf(2, "length received: %d\n", length_received);
+                    dprintf(2, "data received: %s\n", data_received);
                     exit(EXIT_FAILURE);
                 }
 
                 dprintf(2, "type received: %c\n", type_received);
                 n_bytes_readed = read(array_for_serverSocket[index_for_addr], &length_received, sizeof(unsigned int));
                 dprintf(2, "length received: %d\n", length_received);
-                data_received = calloc(1, (size_t)length_received);
+                data_received = calloc(1, (size_t)length_received + 1);
                 n_bytes_readed = read(array_for_serverSocket[index_for_addr], data_received, length_received);
                 dprintf(2, "data received: %s\n", data_received);
-
+                safe_free(data_received);
                 if (n_bytes_readed == 0)
                 {
                     break;
@@ -551,30 +533,4 @@ void printList(linked_list_t *list)
     free(act);
     act = NULL;
     return;
-}
-
-/**
- * Behaviour of signal handler thread.
- *
- * @param args: sigset_t that the thread need to work.
- */
-void *fun_sig_handler(void *arg)
-{
-    sigset_t *set = arg;
-    int s, sig;
-
-    while (1)
-    {
-        s = sigwait(set, &sig);
-        if (s != 0)
-        {
-            handle_en_error(s, "sigwait");
-        }
-        else
-        {
-            dprintf(2, "\n\nShutting down client...\n");
-            running = 0;
-        }
-    }
-    return NULL;
 }
