@@ -33,7 +33,7 @@
 #define MSG_END 'X'
 
 static int running = 1;
-static int *en = 0;
+static int en = 0;
 static void *ptr;
 static pthread_mutex_t *mtx_log;
 static pthread_mutex_t *mtx_for_loan;
@@ -62,9 +62,9 @@ int main(int argc, char const *argv[])
     }
 
     //--------------------------------- signal management ---------------------------------
-    en = pthread_mutex_init(mtx_log, NULL);
+    en = pthread_mutex_init(&mtx_log, NULL);
     handle_en_error(en, "pthread_mutex_init");
-    en = pthread_mutex_init(mtx_for_loan, NULL);
+    en = pthread_mutex_init(&mtx_for_loan, NULL);
     handle_en_error(en, "pthread_mutex_init");
 
     sigset_t set;
@@ -105,7 +105,7 @@ int main(int argc, char const *argv[])
     opened_file = fopen(filename, "r");
     if (opened_file == NULL)
     {
-        message(&mtx_log, "Error opening file %s\n", filename);
+        message(mtx_log, "Error opening file %s\n", filename);
         exit(EXIT_FAILURE);
     }
     else
@@ -157,7 +157,6 @@ int main(int argc, char const *argv[])
     socklen_t size_of_sockaddr = sizeof(serverAddr);
     en = getsockname(serverSocket, (struct sockaddr *)&serverAddr, &size_of_sockaddr);
     handle_en_error(en, "getsockname");
-
     FILE *conf;
     conf = fopen("./conf/addr.conf", "a");
     en = flock(fileno(conf), LOCK_EX);
@@ -180,7 +179,7 @@ int main(int argc, char const *argv[])
 
     if (listen(serverSocket, SOMAXCONN) < 0)
     {
-        message(&mtx_log, "listen failed");
+        message(mtx_log, "listen failed");
         exit(EXIT_FAILURE);
     }
     FD_ZERO(&allFDs);
@@ -223,7 +222,7 @@ int main(int argc, char const *argv[])
 
         if ((check_select = select(currMax + 1, &readFDs, NULL, NULL, &timeout)) == -1)
         {
-            message(&mtx_log, "select failed");
+            message(mtx_log, "select failed");
             exit(EXIT_FAILURE);
         }
 
@@ -237,7 +236,7 @@ int main(int argc, char const *argv[])
 
                     if ((clientFD = accept(serverSocket, NULL, NULL)) < 0)
                     {
-                        message(&mtx_log, "accept failed");
+                        message(mtx_log, "accept failed");
                         exit(EXIT_FAILURE);
                     }
                     en = pthread_mutex_lock(&m);
@@ -287,7 +286,7 @@ int main(int argc, char const *argv[])
     opened_file = fopen(new_path, "w+");
     if (opened_file == NULL)
     {
-        message(&mtx_log, "Error opening file %s\n", filename);
+        message(mtx_log, "Error opening file %s\n", filename);
         exit(EXIT_FAILURE);
     }
     else
@@ -543,7 +542,7 @@ void *fun_sig_handler(void *arg)
         }
         else
         {
-            // message(&mtx_log, "\n\nShutting down server...\n");
+            // message(mtx_log, "\n\nShutting down server...\n");
             running = 0;
         }
     }

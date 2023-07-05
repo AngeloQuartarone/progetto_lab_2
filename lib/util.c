@@ -27,7 +27,7 @@ void handle_null_error(void *ptr, char *msg)
  * @param en error number.
  * @param msg message to print if en is not 0.
  */
-void handle_en_error(int *en, char *msg)
+void handle_en_error(int en, char *msg)
 {
     if (en != 0)
     {

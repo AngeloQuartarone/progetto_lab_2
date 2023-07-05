@@ -11,7 +11,7 @@
 
 
 void handle_null_error(void *, char *);
-void handle_en_error(int *, char *);
+void handle_en_error(int , char *);
 void safe_free(void *);
 void message(pthread_mutex_t *, char *, ...);
 size_t size_of_ptr(char *ptr);
