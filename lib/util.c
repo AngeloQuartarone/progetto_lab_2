@@ -37,6 +37,11 @@ void handle_en_error(int *en, char *msg)
     }
 }
 
+/**
+ * Do a safe free of a pointer. If the pointer is not null, it is freed and set to null.
+ * 
+ * @param ptr pointer to free. 
+ */
 void safe_free(void *ptr)
 {
     if (ptr != NULL)
@@ -61,6 +66,12 @@ void message(pthread_mutex_t *mess_log, char *fmt, ...)
     return;
 }
 
+/**
+ * Return the size of a pointer. 
+ * 
+ * @param ptr pointer to check.
+ * @return size_t size of the pointer.
+ */
 size_t size_of_ptr(char *ptr){
     size_t size = 0;
     while(*ptr != '\0'){

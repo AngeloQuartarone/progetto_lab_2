@@ -164,7 +164,6 @@ int main(int argc, char const *argv[])
     {
         handle_en_error(en, "fprintf");
     }
-    // message(&mtx_log, "SERVER_NAME: %s, SOCKET_PORT: %d\n", argv[1], ntohs(serverAddr.sin_port));
     en = flock(fileno(conf), LOCK_UN);
     handle_en_error(en, "flock");
     en = fclose(conf);

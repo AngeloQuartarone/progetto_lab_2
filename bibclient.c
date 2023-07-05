@@ -92,9 +92,6 @@ int main(int argc, char *argv[])
 
     size_t size = 0;
 
-    // TODO: calcolare bene la size, ho aggiunto un +20 che fa funzionare bene il programma
-    // ma non so se è corretto
-
     for (int j = 0; j < l->size; j++)
     {
         variable_for_request *var = get_nth_element(l, j);
@@ -131,7 +128,7 @@ int main(int argc, char *argv[])
         {
             if (count == 0)
             {
-                // message(&mtx_log, "\nconfiguration file './conf/bib.conf' is empty.\nshutting down client...\n\n");
+                message(&mtx_log, "\nconfiguration file './conf/bib.conf' is empty.\nshutting down client...\n\n");
                 exit(EXIT_SUCCESS);
             }
             break;
@@ -140,8 +137,6 @@ int main(int argc, char *argv[])
     }
     en = fseek(configFile, 0, SEEK_SET);
     handle_en_error(en, "fseek");
-
-    // qui c'è un problema: se un server viene avviato dopo l'avvio del client, il client non lo vede.
 
     long sock[count];
     int index = 0;
@@ -199,14 +194,9 @@ int main(int argc, char *argv[])
         unsigned int length_received = 0;
         char *data_received;
         connection = connect(array_for_serverSocket[index_for_addr], (struct sockaddr *)&array_for_serverAddress[index_for_addr], sizeof(array_for_serverAddress[index_for_addr]));
-        if (connection == -1)
-        {
-            //&mtx_log, "\nconntection failed.\n");
-        }
+        
         if (connection == 0)
         {
-            // message(&mtx_log, "connection established in sock %d, on port %d\n", array_for_serverSocket[index_for_addr], ntohs(array_for_serverAddress[index_for_addr].sin_port));
-
             char buff[BUF_SIZE] = "";
             write(array_for_serverSocket[index_for_addr], message_to_send, size);
 
@@ -238,8 +228,6 @@ int main(int argc, char *argv[])
                     break;
                 }
             }
-
-            // close(array_for_serverSocket[index_for_addr]);
         }
         index_for_addr++;
         if (index_for_addr == count)

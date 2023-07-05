@@ -10,6 +10,11 @@ extern void *ptr;
 #define BUF_SIZE 1024
 #define MAX_FIELDS 128
 
+/**
+ * Initialize a single book
+ *
+ * @param book: book to initialize
+ */
 void *initialize_book(single_book *book)
 {
     strcpy(book->autore, "");
@@ -26,6 +31,12 @@ void *initialize_book(single_book *book)
     return 0;
 }
 
+/**
+ * Initialize a single book with all fields set to "END"
+ * This function is not used in the program, but it is useful future improvements
+ *
+ * @param EOB: book to initialize
+ */
 void *end_of_book(single_book *EOB)
 {
     strcpy(EOB->autore, "END");
@@ -42,6 +53,12 @@ void *end_of_book(single_book *EOB)
     return 0;
 }
 
+/**
+ * Tokenize a single line from a file and store it in a single_book struct
+ *
+ * @param linea string to tokenize
+ * @param book book to store the data
+ */
 void tokenize(char *linea, single_book *book)
 {
     char *fields[MAX_FIELDS];
@@ -109,6 +126,7 @@ void tokenize(char *linea, single_book *book)
         else if (strstr(etichetta, "prestito") != NULL)
         {
             strcat(book->prestito, valore);
+            remove_spaces(book->prestito);
         }
         else
         {
@@ -121,7 +139,12 @@ void tokenize(char *linea, single_book *book)
     }
 }
 
-
+/**
+ * Print a single book in a human readable format
+ * @attention this function is not thread safe, use it only for debug purposes
+ *
+ * @param l linked list to print
+ */
 void print_books_list(linked_list_t *l)
 {
     int index = 0;
@@ -151,6 +174,11 @@ void print_books_list(linked_list_t *l)
     return;
 }
 
+/**
+ * Remove the spaces of the beginning and the end of a string
+ *
+ * @param str string to remove the spaces
+ */
 void remove_spaces(char str[])
 
 {
@@ -174,6 +202,13 @@ void remove_spaces(char str[])
     str[j] = '\0';
 }
 
+/**
+ * Tokeize the string passed from the client and store it in a single_book struct
+ * This function check the validity of the data passed from the client (the date must be between 1500 and the actual year)
+ *
+ * @param str_to_tok
+ * @return single_book*
+ */
 single_book *data_tokenizer(char *str_to_tok)
 {
     single_book *book_to_return = malloc(sizeof(single_book));
@@ -241,6 +276,12 @@ single_book *data_tokenizer(char *str_to_tok)
     return book_to_return;
 }
 
+/**
+ * Convert a single_book struct to a string
+ *
+ * @param book book to convert
+ * @return char* string converted
+ */
 char *rec_to_string(single_book *book)
 {
     char *str = calloc(1, 24 * (sizeof(char) * BUF_SIZE + 1000));
@@ -270,6 +311,14 @@ char *rec_to_string(single_book *book)
     return str;
 }
 
+/**
+ * Check if a book contains a key in a specific field
+ *
+ * @param book book to check
+ * @param field field to check
+ * @param key key to search
+ * @return int 1 if the book contains the key, 0 otherwise
+ */
 int book_contains(single_book *book, Book_Fields field, char *key)
 {
     if (strcmp(key, "") == 0)
@@ -316,6 +365,13 @@ int book_contains(single_book *book, Book_Fields field, char *key)
     return strcasestr(s, key) != NULL;
 }
 
+/**
+ * Check if a book contains all the keys in a specific field
+ *
+ * @param book book to check
+ * @param search_book book to search
+ * @return int 1 if the book contains all the keys, 0 otherwise
+ */
 int book_contains_all(single_book *book, single_book *search_book)
 {
     int result = 1;
@@ -333,6 +389,12 @@ int book_contains_all(single_book *book, single_book *search_book)
     return result;
 }
 
+/**
+ * Calculate the size of a single_book struct
+ *
+ * @param b book to calculate the size
+ * @return size_t size of the book
+ */
 size_t size_of_book(single_book *b)
 {
     size_t size = 0;
@@ -352,6 +414,12 @@ size_t size_of_book(single_book *b)
     return size;
 }
 
+/**
+ * Check if a date is passed or not
+ *
+ * @param date date to check
+ * @return int 1 if the date is passed, 0 otherwise
+ */
 int date_check(char *date)
 {
     double diff = 0;
@@ -365,10 +433,6 @@ int date_check(char *date)
     {
         timestamp = mktime(endRentTime);
     }
-    else
-    {
-        // message("Date format not valid\n");
-    }
     diff = difftime(currentTime, timestamp);
     if (diff >= 0)
     {
@@ -380,6 +444,11 @@ int date_check(char *date)
     }
 }
 
+/**
+ * this function check if all book in the linked list have the prestito field, if not it set it to "AVAILABLE"
+ *
+ * @param l linked list to check
+ */
 void loan_check(linked_list_t *l)
 {
     int index = 0;
