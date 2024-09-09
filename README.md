@@ -1,43 +1,41 @@
-# Progetto di Laboratorio II
+# Project of Laboratorio II
 
-## Questa è la mia personale implementazione di un sistema bibliotecario distribuito.
+## This is my personal implementation of a distributed library system.
 
-Il progetto è diviso in 2 parti principali: 
+The project is divided into 2 main parts: 
 
-- Server: è un sistema multitreaded in grado di gestire più connessioni contemporaneamente.
-- Client: è un programma single threaded che interroga il server in base a determinati input
+- Server: it is a multitreaded system capable of managing multiple connections simultaneously.
+- Client: is a single threaded program that queries the server based on certain inputs
 
-Sono presenti anche quattro librerie così divise:
-- book.c: contiene tutte le funzioni utili al corretto utilizzo della struttura dati "single_book".
-- linkedList.c: è la mia personale implementazione di linked list thread safe
-- queue.c: è un'impementazione di coda thread safe fornita dalla professoressa
-- util.c: contiene tutte le funzioni di utility
+There are also four libraries divided as follows:
+- book.c: contains all the functions useful for the correct use of the "single_book" data structure.
+- linkedList.c: it's my personal implementation of thread safe linked list.
+- queue.c: it is a thread safe queue implementation provided by the teacher.
+- util.c: contains all utility functions,
 
 ## Usage
 
-Il progetto offre la possibilità di avviare i server ed i client singolarmente oppure avviare una sessione di test.
-
-Per entrambe le modalità di utilizzo si deve compiere un'azione preliminare:
+The project offers the possibility to start servers and clients individually or start a test session, For both methods of use, a preliminary action must be carried out:
 
 ```bash
 ~/project_dir$ make prepfile
 ```
 
-Successivamente: 
-- per avviare singolarmente server e client:
+Subsequently:
+- to start server and client individually:
     
-    (verrà avviato un server, poi, dopo un'attesa di 1 secondo verrà avviato un client)
+    (a server will be started, then after waiting 1 second a client will be started)
 
     -   ```bash
         ~/project_dir$ make runsingle
         ```
-- per avviare la sessione di test: 
+- to start the test session: 
 
     -   ```bash
         ~/project_dir$ make test
         ``` 
 
-I server terminano in automatico ma, se non si dovessero fermare, si può terminare con un SIGKILL con il comando: 
+The servers end automatically but, if they do not stop, you can end them with a SIGKILL with the command: 
 ```bash
 ~/project_dir$ make hardstop
 ```
